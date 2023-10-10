@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lip Color Changer</title>
+</head>
+<body>
+    <h1>Lip Color Changer</h1>
+    <input type="color" id="colorPicker" value="#ff0000">
+    <canvas id="canvas" width="640" height="480"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
+    <script>
+        async function setupCamera() {
+            const video = document.createElement('video');
+            document.body.appendChild(video);
+
+            const stream = await navigator.mediaDevices.getUserMedia({ 'video': true });
+            video.srcObject = stream;
+
+            return new Promise((resolve) => {
+                video.onloadedmetadata = () => {
+                    resolve(video);
+                };
+            });
+        }
+
+        async function loadFaceModel() {
+            console.log(faceLandmarksDetection);
+            const model = await faceLandmarksDetection.createDetector(
+                faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh,
+                { maxFaces: 1 }
+            );
+            return model;
+        }
+
+        function drawLips(ctx, lipsLandmarks, color) {
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            for (let i = 48; i <= 59; i++) {
+                ctx.lineTo(lipsLandmarks[i][0], lipsLandmarks[i][1]);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        async function main() {
+            const video = await setupCamera();
+            video.play();
+
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            const faceModel = await loadFaceModel();
+
+            const colorPicker = document.getElementById('colorPicker');
+
+            function updateColor() {
+                const color = colorPicker.value;
+                requestAnimationFrame(() => {
+                    drawLips(ctx, lipsLandmarks, color);
+                });
+            }
+
+            colorPicker.addEventListener('input', updateColor);
+
+            async function detectFace() {
+                const predictions = await faceModel.estimateFaces({ input: video });
+                if (predictions.length > 0) {
+                    const landmarks = predictions[0].scaledMesh;
+                    const lipsLandmarks = landmarks.slice(48, 60); // Lips landmarks are from index 48 to 59
+                    drawLips(ctx, lipsLandmarks, colorPicker.value);
+                }
+                requestAnimationFrame(detectFace);
+            }
+
+            detectFace();
+        }
+
+        main();
+    </script>
+</body>
+</html>
