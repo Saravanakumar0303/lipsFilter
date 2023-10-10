@@ -1,10 +1,13 @@
 
 body {
   font-family: helvetica, arial, sans-serif;
-  margin: 2em;
+  margin: 1em;
   color: #3d3d3d;
   --mdc-theme-primary: #007f8b;
   --mdc-theme-on-primary: #f1f3f4;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
 }
 
 h1 {
@@ -19,6 +22,17 @@ h2 {
 
 em {
   font-weight: bold;
+}
+
+#liveView
+{
+  width: 100%;
+  padding-bottom: 100px;
+}
+
+#liveView div:nth-child(2)
+{
+  margin-bottom: 50px;
 }
 
 video {
